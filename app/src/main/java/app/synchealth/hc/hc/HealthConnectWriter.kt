@@ -10,6 +10,7 @@ import androidx.health.connect.client.records.BoneMassRecord
 import androidx.health.connect.client.records.LeanBodyMassRecord
 import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.records.WeightRecord
+import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.units.Mass
 import androidx.health.connect.client.units.Percentage
@@ -71,7 +72,11 @@ class HealthConnectWriter(private val context: Context) {
         val offset = ZoneId.systemDefault().rules.getOffset(m.time)
         // Version 2 once impedance arrives, so the upsert replaces the weight-only version.
         val version = if (m.composition != null) 2L else 1L
-        fun meta(kind: String) = Metadata(clientRecordId = RecordIds.record(baseId, kind), clientRecordVersion = version)
+        fun meta(kind: String) = Metadata.autoRecorded(
+            device = SCALE_DEVICE,
+            clientRecordId = RecordIds.record(baseId, kind),
+            clientRecordVersion = version,
+        )
 
         val records = mutableListOf<Record>(
             WeightRecord(time = m.time, zoneOffset = offset, weight = Mass.kilograms(m.weightKg), metadata = meta("weight")),
@@ -88,6 +93,9 @@ class HealthConnectWriter(private val context: Context) {
 
     companion object {
         private val BODY_WINDOW: Duration = Duration.ofMinutes(10)
+
+        // Every body source so far is a reading taken by the Mi scale, so records are marked as auto-recorded by it.
+        private val SCALE_DEVICE = Device(type = Device.TYPE_SCALE, manufacturer = "Xiaomi", model = "Mi Body Composition Scale 2")
 
         private val BODY_TYPES: Map<String, KClass<out Record>> = mapOf(
             "weight" to WeightRecord::class,
