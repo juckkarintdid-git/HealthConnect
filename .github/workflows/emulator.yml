@@ -77,8 +77,11 @@ jobs:
           PREV: ${{ steps.prev.outputs.tag }}
         run: |
           git worktree add --detach ../prev "$PREV"
-          (cd ../prev && ./gradlew assembleDebug)
+          # Seed with the previous version's own tests: the new test APK runs inside the old app's
+          # process and can call library methods the old app does not ship.
+          (cd ../prev && ./gradlew assembleDebug assembleDebugAndroidTest)
           cp ../prev/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/old.apk"
+          cp ../prev/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk "$RUNNER_TEMP/old-test.apk"
       - name: Build current (debug + tests)
         if: steps.prev.outputs.tag != ''
         run: ./gradlew assembleDebug assembleDebugAndroidTest
@@ -96,4 +99,4 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: bash .github/scripts/upgrade-test.sh "$RUNNER_TEMP/old.apk" app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          script: bash .github/scripts/upgrade-test.sh "$RUNNER_TEMP/old.apk" "$RUNNER_TEMP/old-test.apk" app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
