@@ -16,6 +16,11 @@ jobs:
       HAS_SIGNING_KEY: ${{ secrets.SIGNING_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Version check
+        if: github.event_name == 'pull_request'
+        run: bash .github/scripts/check-version.sh "origin/${{ github.base_ref }}"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
