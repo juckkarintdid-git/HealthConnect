@@ -23,12 +23,12 @@ jobs:
         # Android 14, 15, 16: all ship Health Connect in the OS.
         api-level: [34, 35, 36]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -42,7 +42,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           script: ./gradlew connectedDebugAndroidTest
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: emulator-test-report-api${{ matrix.api-level }}
@@ -53,14 +53,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Find previous version
         id: prev
         env:
@@ -77,8 +77,11 @@ jobs:
           PREV: ${{ steps.prev.outputs.tag }}
         run: |
           git worktree add --detach ../prev "$PREV"
-          (cd ../prev && ./gradlew assembleDebug)
+          # Seed with the previous version's own tests: the new test APK runs inside the old app's
+          # process and can call library methods the old app does not ship.
+          (cd ../prev && ./gradlew assembleDebug assembleDebugAndroidTest)
           cp ../prev/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/old.apk"
+          cp ../prev/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk "$RUNNER_TEMP/old-test.apk"
       - name: Build current (debug + tests)
         if: steps.prev.outputs.tag != ''
         run: ./gradlew assembleDebug assembleDebugAndroidTest
@@ -96,4 +99,4 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: bash .github/scripts/upgrade-test.sh "$RUNNER_TEMP/old.apk" app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          script: bash .github/scripts/upgrade-test.sh "$RUNNER_TEMP/old.apk" "$RUNNER_TEMP/old-test.apk" app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
