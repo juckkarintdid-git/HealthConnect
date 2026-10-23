@@ -35,3 +35,7 @@ Reviewed against OWASP Mobile Top 10 (2024): see [docs/SECURITY.md](docs/SECURIT
 `./gradlew assembleRelease` (JDK 17, Android SDK 35). CI builds on every push and PR.
 
 See [docs/DESIGN.md](docs/DESIGN.md) for the architecture.
+
+## License
+GPL-3.0, see [LICENSE](LICENSE). The body composition formulas are adapted from
+[openScale](https://github.com/oliexdev/openScale) (GPL-3.0).

@@ -9,6 +9,7 @@ data class UserProfile(val heightCm: Double, val age: Int, val sex: Sex)
 /**
  * Estimates body composition from weight and bioimpedance with the formulas openScale uses for
  * Xiaomi scales. Results are close to, not identical with, what Zepp Life shows.
+ * Adapted from openScale (https://github.com/oliexdev/openScale), GPL-3.0.
  */
 object BodyCompositionCalculator {
 
