@@ -159,6 +159,7 @@ private fun ScaleCard() {
     var enabled by remember { mutableStateOf(store.scaleScanEnabled) }
     var status by remember { mutableStateOf(store.lastStatus) }
     var error by remember { mutableStateOf<String?>(null) }
+    var bound by remember { mutableStateOf(store.boundScaleAddress) }
 
     fun setEnabled(on: Boolean) {
         if (on) {
@@ -177,7 +178,11 @@ private fun ScaleCard() {
         if (res.values.all { it }) setEnabled(true) else error = "Bluetooth permission denied."
     }
     LaunchedEffect(Unit) {
-        while (true) { status = store.lastStatus; delay(2000) }
+        while (true) {
+            status = store.lastStatus
+            bound = store.boundScaleAddress
+            delay(2000)
+        }
     }
 
     Section("Mi Body Composition Scale 2") {
@@ -200,6 +205,13 @@ private fun ScaleCard() {
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Text("Last reading: ${status.ifEmpty { "none yet" }}", style = MaterialTheme.typography.bodySmall)
+        Text(
+            "Trusted scale: ${bound ?: "the first scale that measures you"}",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        if (bound != null) {
+            TextButton(onClick = { store.boundScaleAddress = null; bound = null }) { Text("Forget scale") }
+        }
     }
 }
 

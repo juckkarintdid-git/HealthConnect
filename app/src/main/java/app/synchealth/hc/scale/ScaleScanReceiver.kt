@@ -27,13 +27,21 @@ class ScaleScanReceiver : BroadcastReceiver() {
             intent, BluetoothLeScanner.EXTRA_LIST_SCAN_RESULT, ScanResult::class.java,
         ) ?: return
         val uuid = ParcelUuid.fromString(MiScale2Parser.SERVICE_UUID)
-        val readings = results.mapNotNull { it.scanRecord?.getServiceData(uuid)?.let(MiScale2Parser::parse) }
+        val readings = results.mapNotNull { r ->
+            r.scanRecord?.getServiceData(uuid)?.let(MiScale2Parser::parse)?.let { r.device.address to it }
+        }
         if (readings.isEmpty()) return
 
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                lock.withLock { readings.forEach { handle(context.applicationContext, it) } }
+                lock.withLock {
+                    val settings = SettingsStore(context.applicationContext)
+                    for ((address, reading) in readings) {
+                        if (!ScaleBinding.accept(settings, address)) continue
+                        handle(context.applicationContext, reading)
+                    }
+                }
             } finally {
                 pending.finish()
             }

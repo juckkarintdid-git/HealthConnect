@@ -44,6 +44,11 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean("scale_scan", false)
         set(v) = prefs.edit().putBoolean("scale_scan", v).apply()
 
+    /** MAC of the scale this app trusts; bound to the first scale seen (trust on first use). */
+    var boundScaleAddress: String?
+        get() = prefs.getString("bound_scale", null)
+        set(v) = prefs.edit().putString("bound_scale", v).apply()
+
     var lastReading: LastReading?
         get() {
             val raw = prefs.getString("last_reading", null) ?: return null

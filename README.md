@@ -22,6 +22,15 @@ When two sources record the same measurement within 10 minutes, the app keeps on
 higher-priority one (reorder in the app). For data written by other apps, use Health Connect's
 own setting: **Settings → Health Connect → Data and access → (type) → Data sources and priority**.
 
+## Release signing
+CI signs the APK with the release key when these repository secrets exist:
+`SIGNING_KEYSTORE_BASE64` (base64 of the .jks), `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS`,
+`SIGNING_KEY_PASSWORD`. Without them it falls back to a per-run debug key, and those APKs cannot
+update an installed copy. Keep a backup of the keystore: losing it means reinstalling from scratch.
+
+## Security
+Reviewed against OWASP Mobile Top 10 (2024): see [docs/SECURITY.md](docs/SECURITY.md).
+
 ## Build
 `./gradlew assembleRelease` (JDK 17, Android SDK 35). CI builds on every push and PR.
 
