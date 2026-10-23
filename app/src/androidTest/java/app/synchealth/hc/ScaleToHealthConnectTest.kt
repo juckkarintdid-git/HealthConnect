@@ -100,7 +100,8 @@ class ScaleToHealthConnectTest {
         ScaleIngestor.ingest(context, scale, advert(now, kg = 75.0, impedance = null))
 
         // Zepp ranks below the scale by default: its overlapping copy is dropped.
-        val zepp = BodyMeasurement(expectedInstant(now).plusSeconds(60), Source.ZEPP_CLOUD, 75.1)
+        // A minute earlier: Health Connect rejects records timestamped in the future.
+        val zepp = BodyMeasurement(expectedInstant(now).minusSeconds(60), Source.ZEPP_CLOUD, 75.1)
         val skipped = HealthConnectWriter(context).write(zepp)
         assertTrue(skipped is HealthConnectWriter.Result.SkippedLowerPriority)
         assertEquals(1, read(WeightRecord::class).size)
