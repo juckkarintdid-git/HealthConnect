@@ -62,6 +62,11 @@ class UpgradeTest {
         store.saveProfile(170f, 1990, Sex.FEMALE)
         store.scaleScanEnabled = true
         assertNotNull(ScaleIngestor.ingest(context, scale, advert(seedTime)))
+        // The app saves with apply(); instrumentation kills the process right after this test,
+        // so wait for pending writes (a commit on the same prefs queues behind them).
+        listOf("settings", "written_index").forEach {
+            context.getSharedPreferences(it, Context.MODE_PRIVATE).edit().commit()
+        }
     }
 
     @Test
