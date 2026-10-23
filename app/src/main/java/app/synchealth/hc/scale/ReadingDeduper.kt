@@ -36,6 +36,8 @@ object ReadingDeduper {
 
     private fun scaleInstant(scaleTime: LocalDateTime?, now: Instant, zone: ZoneId): Instant? {
         val t = scaleTime?.atZone(zone)?.toInstant() ?: return null
-        return t.takeIf { Duration.between(it, now).abs() < MAX_CLOCK_DRIFT }
+        if (Duration.between(t, now).abs() >= MAX_CLOCK_DRIFT) return null
+        // Health Connect rejects future timestamps, so a scale clock running ahead uses the phone's time.
+        return if (t.isAfter(now)) now else t
     }
 }
