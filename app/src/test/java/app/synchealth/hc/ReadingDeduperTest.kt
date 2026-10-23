@@ -27,6 +27,13 @@ class ReadingDeduperTest {
     }
 
     @Test
+    fun scaleClockAheadOfPhoneUsesPhoneTime() {
+        // Scale says 07:30:50 local, phone is at 07:30:20 local.
+        val r = MiScale2Parser.Reading(75.0, null, LocalDateTime.of(2025, 10, 23, 7, 30, 50))
+        assertEquals(now, ReadingDeduper.timeFor(r, null, now, zone))
+    }
+
+    @Test
     fun repeatedAdvertIsDropped() {
         val last = LastReading(now.minusSeconds(5), now.minusSeconds(5), 75.0, 480)
         assertNull(ReadingDeduper.timeFor(MiScale2Parser.Reading(75.0, 480, null), last, now, zone))
