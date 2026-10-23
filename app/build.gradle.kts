@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "app.synchealth.hc"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "app.synchealth.hc"
